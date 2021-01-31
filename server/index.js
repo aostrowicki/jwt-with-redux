@@ -12,7 +12,7 @@ const app = express();
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'POST,GET,OPTIONS,PUT,DELETE');
-    res.header('Access-Control-Allow-Headers', 'Content-Type,Accept');
+    res.header('Access-Control-Allow-Headers', 'Content-Type,Accept,authorization');
     next();
 });
 app.use(bodyParser.json())
@@ -43,7 +43,7 @@ app.get('/users/:name', auth, async (req, res) => {
     }
 })
 
-app.get('/users', async (req, res) => {
+app.get('/users', auth, async (req, res) => {
     try {
         const users = await User.find();
         res.json(users);
