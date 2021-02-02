@@ -1,27 +1,15 @@
 import React, { useState } from 'react'
-import { login } from '../utils/auth.js'
+import { useDispatch } from 'react-redux'
+import { login } from '../store/actions/userActions'
 
 export default function Login() {
     const [name, setName] = useState('');
     const [password, setPassword] = useState('');
+    const dispatch = useDispatch();
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        fetch('http://localhost:8080/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                user: {
-                    name: name,
-                    password: password,
-                }
-            })
-        })
-            .then(res => res.json())
-            .then(data => login(data))
-            .catch(err => console.log(err));
+        dispatch(login(name, password));
     }
 
 

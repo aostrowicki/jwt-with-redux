@@ -20,15 +20,13 @@ app.use(bodyParser.json())
 
 // MIDDLEWARE
 const auth = (req, res, next) => {
-    let token = req.headers['authorization']?.split(' ')[1];
+    const token = req.headers['authorization']?.split(' ')[1];
 
     jwt.verify(token, 'token', (err, user) => {
-        if (!err) {
-            req.user = user;
-            next();
-        } else {
-            return res.json({ message: 'User not authenticated' })
-        }
+        if (err)
+            return res.sendStatus(403)
+        req.user = user;
+        next();
     })
 }
 
@@ -39,7 +37,7 @@ app.get('/users/:name', auth, async (req, res) => {
         const users = await User.findOne({ name: req.params.name });
         res.json(users);
     } catch {
-        res.error('error');
+        res.sendStatus(404);
     }
 })
 
@@ -48,7 +46,7 @@ app.get('/users', auth, async (req, res) => {
         const users = await User.find();
         res.json(users);
     } catch {
-        res.error('error');
+        res.error('Error');
     }
 })
 
@@ -68,13 +66,14 @@ app.post('/users', (req, res) => {
 app.post('/login', async (req, res) => {
     const user = req.body.user;
 
-    if (!user) return res.json({ message: 'Body is empty' });
-    const find = await User.findOne({ name: user.name });
+    if (!user)
+        return res.json({ success: false, message: 'Body is empty' });
 
+    const find = await User.findOne({ name: user.name });
     const resp = find ? find.password === user.password ?
-        { token: jwt.sign(user, 'token', { expiresIn: '5min' }), user }
-        : { message: 'Incorrect password' }
-        : { message: 'User not found' };
+        { success: true, token: jwt.sign(user, 'token', { expiresIn: '5min' }) }
+        : { success: false, message: 'Incorrect password' }
+        : { success: false, message: 'User not found' };
 
     return res.json(resp);
 })

@@ -12,9 +12,9 @@ export default function Register() {
             },
             body: JSON.stringify({ user: formData })
         })
-            .then(res => res.json())
-            .then(data => console.log(data))
-            .catch(err => console.log(err));
+        .then(res => res.json())
+        .then(data => console.log(data))
+        .catch(err => console.log(err));
     }
 
 
