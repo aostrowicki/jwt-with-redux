@@ -1,21 +1,14 @@
-const setUser = (payload) => ({ type: "LOG_IN", payload })
+import axios from 'axios'
+
 
 export const logout = () => ({ type: "LOG_OUT" })
 
-
 export const login = (name, password) => dispatch => {
-    fetch('http://localhost:8080/login', {
-        method: 'POST',
+    axios.post('http://localhost:8080/login', JSON.stringify({ user: { name, password, } }), {
         headers: {
             'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            user: {
-                name: name,
-                password: password,
-            }
-        })
+        }
     })
-    .then(res => res.json())
-    .then(data => { if (data.success) dispatch(setUser(data.token)) })
+        .then(res => dispatch({ type: "LOG_IN", payload: res.data.token }))
+        .catch(err => console.log(err.response.data))
 }

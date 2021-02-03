@@ -4,7 +4,6 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken')
 const User = require('./models/User');
-const e = require('express');
 const app = express();
 
 
@@ -20,11 +19,14 @@ app.use(bodyParser.json())
 
 // MIDDLEWARE
 const auth = (req, res, next) => {
-    const token = req.headers['authorization']?.split(' ')[1];
+    const token = req.headers['authorization'].split(' ')[1];
+
+    if (!token)
+        return res.status(401).json({ success: false, message: 'No token' });
 
     jwt.verify(token, 'token', (err, user) => {
         if (err)
-            return res.sendStatus(403)
+            return res.status(400).json({ success: false, message: 'Token not valid' });
         req.user = user;
         next();
     })
@@ -37,7 +39,7 @@ app.get('/users/:name', auth, async (req, res) => {
         const users = await User.findOne({ name: req.params.name });
         res.json(users);
     } catch {
-        res.sendStatus(404);
+        res.status(404).json({ message: 'User not found' });
     }
 })
 
@@ -45,8 +47,8 @@ app.get('/users', auth, async (req, res) => {
     try {
         const users = await User.find();
         res.json(users);
-    } catch {
-        res.error('Error');
+    } catch (err) {
+        res.status(500).json({ message: err.message });
     }
 })
 
@@ -58,24 +60,23 @@ app.post('/users', (req, res) => {
 
     user.save()
         .then(() => {
-            res.json('User created')
+            res.json({ message: 'User created' })
         })
-        .catch(() => { res.error(error) })
+        .catch((err) => res.status(500).json({ message: err.message }))
 })
 
 app.post('/login', async (req, res) => {
-    const user = req.body.user;
+    const { name, password } = req.body.user;
+    if (!name || !password)
+        return res.status(400).json({ message: 'Field is empty' });
 
+    const user = await User.findOne({ name });
     if (!user)
-        return res.json({ success: false, message: 'Body is empty' });
+        return res.status(400).json({ message: 'User not found' })
+    if (user.password !== password)
+        return res.status(400).json({ message: 'Incorrect password' })
 
-    const find = await User.findOne({ name: user.name });
-    const resp = find ? find.password === user.password ?
-        { success: true, token: jwt.sign(user, 'token', { expiresIn: '5min' }) }
-        : { success: false, message: 'Incorrect password' }
-        : { success: false, message: 'User not found' };
-
-    return res.json(resp);
+    return res.json({ token: jwt.sign({ id: user._id }, 'token', { expiresIn: '5min' }) });
 })
 
 

@@ -6,10 +6,9 @@ import Users from '../views/Users'
 import { Switch, Route } from 'react-router-dom'
 
 
-
 function App() {
   return (
-    <div>
+    <>
       <Nav />
 
       <Switch>
@@ -17,7 +16,7 @@ function App() {
         <Route exact path='/register' component={Register} />
         <Route exact path='/users' component={Users} />
       </Switch>
-    </div>
+    </>
   );
 }
 

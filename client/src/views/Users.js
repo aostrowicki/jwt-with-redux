@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useHistory } from 'react-router-dom'
 import { useSelector } from 'react-redux'
+import axios from 'axios'
 
 
 export default function Users() {
@@ -9,26 +10,15 @@ export default function Users() {
     const [data, setData] = useState();
 
     useEffect(() => {
-        if (!token) {
-            console.log("You're not logged in");
-            history.push('/login');
-        }
-        else {
-            fetch('http://localhost:8080/users', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'authorization': `Bearer ${token}`
-                }
-            })
-                .then(res => res.json())
-                .then(data => setData(data))
-                .catch(err => {
-                    console.log(err);
-                    history.push('/login');
-                })
-        }
-    }, [])
+        axios.get('http://localhost:8080/users', {
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': `Bearer ${token}`
+            }
+        })
+            .then(res => setData(res.data))
+            .catch(err => { console.log(err.response.data); history.push('/login') })
+    }, [token])
 
 
     return (
