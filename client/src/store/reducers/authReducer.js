@@ -3,14 +3,15 @@ const defaultState = {
     token: ''
 }
 
-const userReducer = (state = defaultState, action) => {
+const authReducer = (state = defaultState, action) => {
     switch (action.type) {
-        case "LOG_IN":
+        case "LOGIN_SUCCESS":
             return {
                 isLogged: true,
                 token: action.payload
             }
-        case "LOG_OUT":
+        case "LOGOUT":
+        case "LOGIN_FAIL":
             return {
                 isLogged: false,
                 token: ''
@@ -20,4 +21,4 @@ const userReducer = (state = defaultState, action) => {
     }
 }
 
-export default userReducer
+export default authReducer

@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 
-export const logout = () => ({ type: "LOG_OUT" })
+export const logout = () => ({ type: "LOGOUT" })
 
 export const login = (name, password) => dispatch => {
     axios.post('http://localhost:8080/login', JSON.stringify({ user: { name, password, } }), {
@@ -9,6 +9,6 @@ export const login = (name, password) => dispatch => {
             'Content-Type': 'application/json',
         }
     })
-        .then(res => dispatch({ type: "LOG_IN", payload: res.data.token }))
-        .catch(err => console.log(err.response.data))
+        .then(res => dispatch({ type: "LOGIN_SUCCESS", payload: res.data.token }))
+        .catch(err => { console.log(err.response.data); return dispatch({ type: "LOGIN_FAIL" }) })
 }

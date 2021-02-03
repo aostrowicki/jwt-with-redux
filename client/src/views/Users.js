@@ -6,7 +6,7 @@ import axios from 'axios'
 
 export default function Users() {
     let history = useHistory();
-    const token = useSelector(state => state.userReducer.token);
+    const token = useSelector(state => state.auth.token);
     const [data, setData] = useState();
 
     useEffect(() => {

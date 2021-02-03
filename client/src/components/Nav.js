@@ -1,13 +1,13 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { logout } from '../store/actions/userActions'
+import { logout } from '../store/actions/authActions'
 
 export default function Nav() {
-    const isLogged = useSelector(state => state.userReducer.isLogged)
+    const isLogged = useSelector(state => state.auth.isLogged)
     const dispatch = useDispatch();
 
-    
+
     return (
         <ul>
             <li><Link to='/home'>Home</Link></li>
