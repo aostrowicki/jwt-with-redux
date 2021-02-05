@@ -19,14 +19,14 @@ app.use(bodyParser.json())
 
 // MIDDLEWARE
 const auth = (req, res, next) => {
-    const token = req.headers['authorization'].split(' ')[1];
+    const accessToken = req.headers['authorization'].split(' ')[1];
 
-    if (!token)
-        return res.status(401).json({ message: 'No token' });
+    if (!accessToken)
+        return res.status(401).json({ message: 'No access token' });
 
-    jwt.verify(token, 'token', (err, user) => {
+    jwt.verify(accessToken, 'atoken', (err, user) => {
         if (err)
-            return res.status(400).json({ message: 'Token not valid' });
+            return res.status(401).json({ message: 'Access token not valid' });
         req.user = user;
         next();
     })
@@ -34,6 +34,36 @@ const auth = (req, res, next) => {
 
 
 // ROUTES
+app.post('/login', async (req, res) => {
+    const { name, password } = req.body.user;
+    if (!name || !password)
+        return res.status(400).json({ message: 'Field is empty' });
+
+    const user = await User.findOne({ name });
+    if (!user)
+        return res.status(400).json({ message: 'User not found' });
+    if (user.password !== password)
+        return res.status(400).json({ message: 'Incorrect password' });
+
+    const accessToken = jwt.sign({ id: user._id }, 'atoken', { expiresIn: '1min' });
+    const refreshToken = jwt.sign({ id: user._id }, 'rtoken', { expiresIn: '10d' });
+    return res.json({ accessToken, refreshToken });
+})
+
+app.post('/refresh', (req, res) => {
+    const { refreshToken } = req.body;
+    if (!refreshToken)
+        return res.status(401).json({ message: 'No refresh token' });
+
+    jwt.verify(refreshToken, 'rtoken', (err, user) => {
+        if (err)
+            return res.status(401).json({ message: 'No refresh token' });
+
+        const accessToken = jwt.sign({ id: user._id }, 'atoken', { expiresIn: '1min' });
+        return res.json({ accessToken });
+    })
+})
+
 app.get('/users/:name', auth, async (req, res) => {
     try {
         const users = await User.findOne({ name: req.params.name });
@@ -63,20 +93,6 @@ app.post('/users', (req, res) => {
             res.json({ message: 'User created' })
         })
         .catch((err) => res.status(500).json({ message: err.message }))
-})
-
-app.post('/login', async (req, res) => {
-    const { name, password } = req.body.user;
-    if (!name || !password)
-        return res.status(400).json({ message: 'Field is empty' });
-
-    const user = await User.findOne({ name });
-    if (!user)
-        return res.status(400).json({ message: 'User not found' })
-    if (user.password !== password)
-        return res.status(400).json({ message: 'Incorrect password' })
-
-    return res.json({ token: jwt.sign({ id: user._id }, 'token', { expiresIn: '5min' }) });
 })
 
 
