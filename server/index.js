@@ -2,6 +2,7 @@ require('dotenv').config({ path: '.env' });
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 const jwt = require('jsonwebtoken')
 const User = require('./models/User');
 const app = express();
@@ -14,6 +15,7 @@ app.use((req, res, next) => {
     res.header('Access-Control-Allow-Headers', 'Content-Type,Accept,authorization');
     next();
 });
+app.use(cookieParser());
 app.use(bodyParser.json())
 
 
@@ -45,13 +47,14 @@ app.post('/login', async (req, res) => {
     if (user.password !== password)
         return res.status(400).json({ message: 'Incorrect password' });
 
-    const accessToken = jwt.sign({ id: user._id }, 'atoken', { expiresIn: '1min' });
-    const refreshToken = jwt.sign({ id: user._id }, 'rtoken', { expiresIn: '10d' });
-    return res.json({ accessToken, refreshToken });
+    const accessToken = jwt.sign({ _id: user._id }, 'atoken', { expiresIn: '1min' });
+    const refreshToken = jwt.sign({ _id: user._id }, 'rtoken', { expiresIn: '10d' });
+    const expiryDate = new Date(Number(new Date()) + 10 * 24 * 60 * 60 * 1000);;
+    return res.cookie('refreshToken', refreshToken, { maxAge: expiryDate, httpOnly: true, secure: true }).json({ accessToken });
 })
 
 app.post('/refresh', (req, res) => {
-    const { refreshToken } = req.body;
+    const { refreshToken } = req.cookies;
     if (!refreshToken)
         return res.status(401).json({ message: 'No refresh token' });
 
@@ -59,8 +62,10 @@ app.post('/refresh', (req, res) => {
         if (err)
             return res.status(401).json({ message: 'No refresh token' });
 
-        const accessToken = jwt.sign({ id: user._id }, 'atoken', { expiresIn: '1min' });
-        return res.json({ accessToken });
+        const accessToken = jwt.sign({ _id: user._id }, 'atoken', { expiresIn: '1min' });
+        const refreshToken = jwt.sign({ _id: user._id }, 'rtoken', { expiresIn: '10d' });
+        const expiryDate = new Date(Number(new Date()) + 10 * 24 * 60 * 60 * 1000);;
+        return res.cookie('refreshToken', refreshToken, { maxAge: expiryDate, httpOnly: true, secure: true }).json({ accessToken });
     })
 })
 
