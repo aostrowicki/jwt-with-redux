@@ -10,9 +10,10 @@ const app = express();
 
 // PARSER + CORS
 app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Origin', 'http://localhost:3000');
     res.header('Access-Control-Allow-Methods', 'POST,GET,OPTIONS,PUT,DELETE');
     res.header('Access-Control-Allow-Headers', 'Content-Type,Accept,authorization');
+    res.header('Access-Control-Allow-Credentials', 'true');
     next();
 });
 app.use(cookieParser());
@@ -49,22 +50,22 @@ app.post('/login', async (req, res) => {
 
     const accessToken = jwt.sign({ _id: user._id }, 'atoken', { expiresIn: '1min' });
     const refreshToken = jwt.sign({ _id: user._id }, 'rtoken', { expiresIn: '10d' });
-    const expiryDate = new Date(Number(new Date()) + 10 * 24 * 60 * 60 * 1000);;
+    const expiryDate = new Date(Number(new Date()) + 10 * 24 * 60 * 60 * 1000);
     return res.cookie('refreshToken', refreshToken, { maxAge: expiryDate, httpOnly: true, secure: true }).json({ accessToken });
 })
 
-app.post('/refresh', (req, res) => {
+app.get('/refresh', (req, res) => {
     const { refreshToken } = req.cookies;
     if (!refreshToken)
         return res.status(401).json({ message: 'No refresh token' });
 
     jwt.verify(refreshToken, 'rtoken', (err, user) => {
         if (err)
-            return res.status(401).json({ message: 'No refresh token' });
+            return res.status(401).json({ message: 'Refresh token not valid or expired' });
 
         const accessToken = jwt.sign({ _id: user._id }, 'atoken', { expiresIn: '1min' });
         const refreshToken = jwt.sign({ _id: user._id }, 'rtoken', { expiresIn: '10d' });
-        const expiryDate = new Date(Number(new Date()) + 10 * 24 * 60 * 60 * 1000);;
+        const expiryDate = new Date(Number(new Date()) + 10 * 24 * 60 * 60 * 1000);
         return res.cookie('refreshToken', refreshToken, { maxAge: expiryDate, httpOnly: true, secure: true }).json({ accessToken });
     })
 })

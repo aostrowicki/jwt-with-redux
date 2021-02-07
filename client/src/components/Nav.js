@@ -7,14 +7,12 @@ export default function Nav() {
     const isLogged = useSelector(state => state.auth.isLogged)
     const dispatch = useDispatch();
 
-
     return (
         <ul>
-            <li><Link to='/home'>Home</Link></li>
-            <li><Link to='/login'>Login</Link></li>
+            <li><Link to='/'>Home</Link></li>
             <li><Link to='/register'>Register</Link></li>
             <li><Link to='/users'>Users (protected)</Link></li>
-            {isLogged && <li onClick={() => dispatch(logout())}>Logout</li>}
+            {!isLogged ? <li><Link to='/login'>Login</Link></li> : <li onClick={() => dispatch(logout())}>Logout</li>}
         </ul>
     )
 }
