@@ -1,21 +1,32 @@
 const defaultState = {
-    isLogged: false,
-    token: ''
+    isLogged: localStorage.getItem('loggedIn') || false,
+    accessToken: '',
 }
 
 const authReducer = (state = defaultState, action) => {
     switch (action.type) {
+        case "REFRESH_SUCCESS":
+            return {
+                ...state,
+                accessToken: action.payload,
+            }
+
         case "LOGIN_SUCCESS":
+            localStorage.setItem('loggedIn', true)
             return {
                 isLogged: true,
-                token: action.payload
+                accessToken: action.payload,
             }
+
         case "LOGOUT":
         case "LOGIN_FAIL":
+        case "REFRESH_FAIL":
+            localStorage.removeItem('loggedIn')
             return {
                 isLogged: false,
-                token: ''
+                accessToken: '',
             }
+
         default:
             return state
     }
